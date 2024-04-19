@@ -39,13 +39,9 @@ export default function Home() {
         </div>
       </div>
       <div className="text-center">
-        <p className="font-bold pt-5 text-xl">Disclaimer</p>
-        <p className="text-sm font-light p-2">
-          This video is made for informational and educational purposes only. We
-          do not own or affiliate with Dropbox or/and any of its subsidiaries
-          any form. Copyright Disclaimer under section 107 of the Copyright Act
-          1976, allowance is made for "fair use" of this video for education
-          purposes.
+        <p className="font-bold pt-5 text-2xl">All the tools you need in one plan</p>
+        <p className="text-sm p-2">
+        Store and share files. Sign and send documents. Record screens and comment. All in one place.
         </p>
       </div>
     </main>
