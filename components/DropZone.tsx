@@ -1,6 +1,6 @@
 "use client";
 
-import { db, storage,  } from "@/firebase";
+import { db, storage } from "@/firebase";
 import { cn } from "@/lib/utils";
 import { useUser } from "@clerk/nextjs";
 import {
@@ -13,6 +13,7 @@ import {
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { useState } from "react";
 import Dropzone from "react-dropzone";
+import toast from "react-hot-toast";
 
 function DropZone() {
   const [loading, setLoading] = useState(false);
@@ -35,37 +36,43 @@ function DropZone() {
     if (loading) return;
     if (!user) return;
 
-    setLoading(true);
+    try {
+      const toastId = toast.loading("Uploading...");
+      setLoading(true);
 
-    const timestamp = serverTimestamp()
+      const timestamp = serverTimestamp();
 
-    // do what need to be done
-    // addDoc -> user/user12345/files
+      const docRef = await addDoc(collection(db, "users", user.id, "files"), {
+        userId: user.id,
+        filename: selectedFile.name,
+        fullName: user.fullName,
+        profileImage: user.imageUrl,
+        timestamp: timestamp,
+        type: selectedFile.type,
+        size: selectedFile.size,
+      });
 
-    const docRef = await addDoc(collection(db, "users", user.id, "files"), {
-      userId: user.id,
-      fileName: selectedFile.name,
-      fullName: user.fullName,
-      profileImage: user.imageUrl,
-      timestamp: timestamp,
-      type: selectedFile.type,
-      size: selectedFile.size,
-    });
+      const imageRef = ref(storage, `users/${user.id}/files/${docRef.id}`);
 
-    console.log(docRef.id);
+      await uploadBytes(imageRef, selectedFile);
 
-    const imageRef = ref(storage, `users/${user.id}/files/${docRef.id}`);
-
-    uploadBytes(imageRef, selectedFile).then(async (snapshot) => {
       const downloadUrl = await getDownloadURL(imageRef);
 
       await updateDoc(doc(db, "users", user.id, "files", docRef.id), {
         downloadUrl: downloadUrl,
       });
-    });
 
-    setLoading(false);
+      toast.success("Upload successful!",{
+        id: toastId
+      });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast.error("Upload failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
+
   //max size 20MB
   const maxSize = 20971520;
 
